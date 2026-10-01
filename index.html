@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f3ed" />
+  <title>Forma | Entrena con tu cámara</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { color-scheme: light; --ink:#20251f; --muted:#747970; --paper:#f4f3ed; --white:#fffefa; --line:#e4e4da; --green:#b8f36b; --coral:#ed7259; --shadow:0 18px 50px rgb(32 37 31 / 8%); }
+    * { box-sizing:border-box; }
+    body { min-width:320px; min-height:100vh; margin:0; background-color:var(--paper); background-image:radial-gradient(#d9dbd0 .7px,transparent .7px); background-size:19px 19px; color:var(--ink); font-family:"DM Sans",sans-serif; }
+    button,select { font:inherit; } button { color:inherit; }
+    .shell { width:min(1180px,calc(100% - 48px)); margin:0 auto; }
+    header { height:78px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgb(32 37 31 / 12%); }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700; }
+    .brand-mark { width:30px; height:30px; display:grid; place-items:center; background:var(--green); border-radius:9px; }
+    .brand-mark svg { width:18px; height:18px; }
+    .header-note { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
+    .live-dot { width:7px; height:7px; background:#62a844; border-radius:50%; box-shadow:0 0 0 4px rgb(98 168 68 / 12%); }
+    main { padding:42px 0 54px; }
+    .intro { display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:25px; animation:rise-in 550ms ease both; }
+    .eyebrow { margin:0 0 8px; color:#657257; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+    h1 { margin:0; font-family:"Barlow Condensed",sans-serif; font-size:clamp(40px,6vw,62px); line-height:.92; text-transform:uppercase; }
+    .intro-copy { max-width:290px; margin:0 2px 3px 0; color:var(--muted); font-size:13px; line-height:1.6; }
+    .workout { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr); gap:18px; align-items:stretch; }
+    .camera-card,.side-panel { background:var(--white); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); }
+    .camera-card { overflow:hidden; animation:rise-in 650ms 80ms ease both; }
+    .camera-top { height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 18px; border-bottom:1px solid var(--line); }
+    .camera-label { display:flex; align-items:center; gap:9px; font-size:12px; font-weight:700; }
+    .camera-label svg { width:17px; height:17px; color:#59634e; }
+    .camera-state { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:11px; }
+    .camera-state .live-dot { background:#c2c4bc; box-shadow:none; }
+    .camera-state.is-live { color:#507e3a; }
+    .camera-state.is-live .live-dot { background:#62a844; box-shadow:0 0 0 4px rgb(98 168 68 / 12%); }
+    .stage { position:relative; aspect-ratio:16 / 10; min-height:280px; overflow:hidden; background:#252a26; }
+    #camera,#overlay { position:absolute; inset:0; width:100%; height:100%; }
+    #camera { display:none; object-fit:cover; transform:scaleX(-1); }
+    #overlay { pointer-events:none; transform:scaleX(-1); }
+    .camera-placeholder { position:absolute; inset:0; display:grid; place-items:center; padding:24px; background:radial-gradient(ellipse at 50% 45%,#3b433b,#252a26 68%); color:white; text-align:center; }
+    .placeholder-content { max-width:280px; }
+    .camera-symbol { width:56px; height:56px; display:grid; place-items:center; margin:0 auto 15px; color:var(--green); background:rgb(255 255 255 / 8%); border:1px solid rgb(255 255 255 / 13%); border-radius:16px; }
+    .camera-symbol svg { width:25px; height:25px; }
+    .camera-placeholder h2 { margin:0 0 7px; font-family:"Barlow Condensed",sans-serif; font-size:26px; text-transform:uppercase; }
+    .camera-placeholder p { margin:0; color:#c0c6be; font-size:12px; line-height:1.55; }
+    .pose-hint { position:absolute; z-index:2; top:14px; left:14px; display:none; align-items:center; gap:7px; padding:8px 10px; color:#fff; background:rgb(32 37 31 / 70%); border:1px solid rgb(255 255 255 / 16%); border-radius:5px; font-size:10px; backdrop-filter:blur(8px); }
+    .pose-hint.visible { display:flex; } .pose-hint svg { width:14px; height:14px; color:var(--green); }
+    .camera-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; }
+    .privacy { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:10px; } .privacy svg { width:14px; height:14px; }
+    .primary-button { min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:0 16px; background:var(--green); border:0; border-radius:5px; cursor:pointer; font-size:12px; font-weight:700; transition:background 160ms ease,transform 160ms ease; }
+    .primary-button:hover { background:#a8e458; transform:translateY(-1px); } .primary-button:disabled { cursor:wait; opacity:.65; transform:none; } .primary-button svg { width:16px; height:16px; }
+    .side-panel { display:flex; flex-direction:column; padding:19px; animation:rise-in 700ms 150ms ease both; }
+    .panel-heading { display:flex; justify-content:space-between; align-items:center; padding-bottom:14px; border-bottom:1px solid var(--line); }
+    .panel-heading h2 { margin:0; font-size:13px; font-weight:700; }
+    .session-tag { padding:5px 7px; color:#59634e; background:#eff4e8; border-radius:4px; font-size:9px; font-weight:700; text-transform:uppercase; }
+    .field-label { display:block; margin:20px 0 8px; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; }
+    .exercise-select { width:100%; height:43px; padding:0 11px; background:#fff; border:1px solid var(--line); border-radius:5px; color:var(--ink); font-size:12px; font-weight:600; }
+    .metrics { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:16px; }
+    .metric { min-height:93px; padding:12px; background:#f5f5ef; border-radius:5px; }
+    .metric-label { color:var(--muted); font-size:10px; }
+    .metric-value { margin-top:7px; font-family:"Barlow Condensed",sans-serif; font-size:39px; font-weight:700; line-height:1; }
+    .movement { display:flex; justify-content:space-between; gap:8px; margin-top:18px; padding:12px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .movement-label { color:var(--muted); font-size:10px; } .movement-value { font-size:10px; font-weight:700; }
+    .movement-value::before { content:""; display:inline-block; width:6px; height:6px; margin-right:6px; background:var(--coral); border-radius:50%; vertical-align:1px; }
+    .tip { display:flex; gap:9px; margin-top:auto; padding:12px 10px; background:#fff4ee; border-radius:5px; }
+    .tip svg { flex:0 0 auto; width:15px; height:15px; color:var(--coral); } .tip p { margin:0; color:#6c625a; font-size:10px; line-height:1.5; }
+    .reset-button { margin-top:12px; padding:7px 0; color:var(--muted); background:transparent; border:0; cursor:pointer; font-size:10px; text-align:left; }
+    .reset-button:hover { color:var(--ink); }
+    .error-message { display:none; margin:0 16px 14px; padding:10px 12px; color:#813b2c; background:#fff0eb; border-radius:5px; font-size:11px; line-height:1.5; }
+    .error-message.visible { display:block; } footer { display:flex; justify-content:space-between; gap:16px; margin-top:19px; color:#7c8178; font-size:10px; }
+    @keyframes rise-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @media(max-width:760px) { .shell{width:min(100% - 30px,560px)} header{height:66px} main{padding-top:30px} .intro{display:block;margin-bottom:20px} .intro-copy{max-width:360px;margin-top:12px} .workout{grid-template-columns:1fr;gap:13px} .stage{min-height:220px;aspect-ratio:4 / 3} .side-panel{min-height:365px} footer{flex-direction:column;gap:6px} }
+    @media(max-width:420px) { .header-note{font-size:10px} .camera-top{padding:0 12px} .camera-controls{align-items:flex-start;flex-direction:column} .primary-button{width:100%} .privacy{order:2} }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2.2-6 3.6 12 2.2-6H20" /></svg></span><span>forma</span></div>
+      <div class="header-note"><span class="live-dot"></span> Tu espacio de entrenamiento</div>
+    </header>
+    <main>
+      <section class="intro"><div><p class="eyebrow">Entrena a tu ritmo</p><h1>Muévete.<br />Nosotros contamos.</h1></div><p class="intro-copy">Activa la cámara, elige un ejercicio y deja que tu movimiento marque el ritmo.</p></section>
+      <section class="workout" aria-label="Entrenamiento con cámara">
+        <div class="camera-card">
+          <div class="camera-top"><div class="camera-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg> Vista de cámara</div><div class="camera-state" id="cameraState"><span class="live-dot"></span><span id="cameraStateText">Cámara apagada</span></div></div>
+          <div class="stage"><video id="camera" playsinline muted></video><canvas id="overlay"></canvas><div class="camera-placeholder" id="placeholder"><div class="placeholder-content"><div class="camera-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg></div><h2>Tu sesión empieza aquí</h2><p>Colócate a unos pasos de la cámara para que podamos ver todo tu cuerpo.</p></div></div><div class="pose-hint" id="poseHint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg><span id="poseHintText">Cuerpo detectado</span></div></div>
+          <p class="error-message" id="errorMessage" role="alert"></p>
+          <div class="camera-controls"><div class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>El análisis ocurre en tu navegador.</div><button class="primary-button" id="cameraButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg><span>Activar cámara</span></button></div>
+        </div>
+        <aside class="side-panel">
+          <div class="panel-heading"><h2>Tu entrenamiento</h2><span class="session-tag">Sesión libre</span></div>
+          <label class="field-label" for="exerciseSelect">Ejercicio</label>
+          <select class="exercise-select" id="exerciseSelect"><option value="squat">Sentadillas</option><option value="jack">Jumping jacks</option></select>
+          <div class="metrics"><div class="metric"><div class="metric-label">Repeticiones</div><div class="metric-value" id="repCount">0</div></div><div class="metric"><div class="metric-label">Tiempo</div><div class="metric-value" id="timeCount">00:00</div></div></div>
+          <div class="movement"><span class="movement-label">Movimiento</span><span class="movement-value" id="movementState">En espera</span></div>
+          <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6m-5 4h4m-2-20a7 7 0 0 0-4 12.7c.5.4 1 1.2 1 2.3h6c0-1.1.5-1.9 1-2.3A7 7 0 0 0 12 2Z"/></svg><p id="tipText">Baja con control y mantén las rodillas alineadas con los pies.</p></div>
+          <button class="reset-button" id="resetButton" type="button">Reiniciar sesión</button>
+        </aside>
+      </section>
+      <footer><span>Forma · Movimiento consciente, repetición a repetición.</span><span>La cámara no guarda ni envía vídeo.</span></footer>
+    </main>
+  </div>
+  <script type="module">
+    import { FilesetResolver, PoseLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+    const video = document.querySelector("#camera");
+    const canvas = document.querySelector("#overlay");
+    const ctx = canvas.getContext("2d");
+    const cameraButton = document.querySelector("#cameraButton");
+    const cameraState = document.querySelector("#cameraState");
+    const cameraStateText = document.querySelector("#cameraStateText");
+    const placeholder = document.querySelector("#placeholder");
+    const errorMessage = document.querySelector("#errorMessage");
+    const poseHint = document.querySelector("#poseHint");
+    const poseHintText = document.querySelector("#poseHintText");
+    const exerciseSelect = document.querySelector("#exerciseSelect");
+    const repCount = document.querySelector("#repCount");
+    const timeCount = document.querySelector("#timeCount");
+    const movementState = document.querySelector("#movementState");
+    const tipText = document.querySelector("#tipText");
+    let landmarker;
+    let drawingUtils;
+    let stream;
+    let previousFrameTime = -1;
+    let repetitions = 0;
+    let phase = "ready";
+    let startedAt = 0;
+    let timerInterval;
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add("visible");
+    }
+
+    async function setupLandmarker() {
+      if (landmarker) return landmarker;
+      const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+      landmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task" },
+        runningMode: "VIDEO", numPoses: 1
+      });
+      drawingUtils = new DrawingUtils(ctx);
+      return landmarker;
+    }
+
+    async function toggleCamera() {
+      if (stream) { stopCamera(); return; }
+      cameraButton.disabled = true;
+      cameraButton.querySelector("span").textContent = "Preparando cámara...";
+      errorMessage.classList.remove("visible");
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) throw new Error("Abre esta página desde localhost o una dirección HTTPS para usar la cámara.");
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 800 } }, audio: false });
+        video.srcObject = stream;
+        await video.play();
+        await setupLandmarker();
+        placeholder.hidden = true;
+        video.style.display = "block";
+        cameraState.classList.add("is-live");
+        cameraStateText.textContent = "Cámara activa";
+        cameraButton.querySelector("span").textContent = "Detener cámara";
+        cameraButton.querySelector("svg").innerHTML = '<rect x="6" y="6" width="12" height="12" rx="2"/>';
+        startedAt = Date.now();
+        timerInterval = window.setInterval(updateTimer, 1000);
+        cameraButton.disabled = false;
+        requestAnimationFrame(detectFrame);
+      } catch (error) {
+        stopCamera();
+        showError(error.name === "NotAllowedError" ? "No hay permiso para usar la cámara. Permite el acceso en el navegador e inténtalo de nuevo." : error.message || "No se pudo iniciar la cámara. Comprueba la conexión e inténtalo de nuevo.");
+        cameraButton.disabled = false;
+        cameraButton.querySelector("span").textContent = "Activar cámara";
+      }
+    }
+
+    function stopCamera() {
+      if (stream) stream.getTracks().forEach((track) => track.stop());
+      stream = undefined;
+      video.pause();
+      video.srcObject = null;
+      video.style.display = "none";
+      placeholder.hidden = false;
+      cameraState.classList.remove("is-live");
+      cameraStateText.textContent = "Cámara apagada";
+      cameraButton.disabled = false;
+      cameraButton.querySelector("span").textContent = "Activar cámara";
+      cameraButton.querySelector("svg").innerHTML = '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/>';
+      poseHint.classList.remove("visible");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      window.clearInterval(timerInterval);
+      if (startedAt) updateTimer();
+    }
+
+    function updateTimer() {
+      if (!startedAt) return;
+      const seconds = Math.floor((Date.now() - startedAt) / 1000);
+      timeCount.textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+    }
+
+    function angleAtJoint(hip, knee, ankle) {
+      const first = Math.atan2(hip.y - knee.y, hip.x - knee.x);
+      const second = Math.atan2(ankle.y - knee.y, ankle.x - knee.x);
+      let angle = Math.abs((first - second) * 180 / Math.PI);
+      if (angle > 180) angle = 360 - angle;
+      return angle;
+    }
+
+    function valid(landmark) { return landmark && (landmark.visibility ?? 1) > 0.5; }
+
+    function updateMovement(landmarks) {
+      const ids = { leftShoulder:11, rightShoulder:12, leftWrist:15, rightWrist:16, leftHip:23, rightHip:24, leftKnee:25, rightKnee:26, leftAnkle:27, rightAnkle:28 };
+      const points = Object.fromEntries(Object.entries(ids).map(([name,index]) => [name,landmarks[index]]));
+      if (!Object.values(points).every(valid)) {
+        movementState.textContent = "Cuerpo incompleto";
+        poseHint.classList.remove("visible");
+        return;
+      }
+      poseHint.classList.add("visible");
+      const exercise = exerciseSelect.value;
+      if (exercise === "squat") {
+        const angle = (angleAtJoint(points.leftHip,points.leftKnee,points.leftAnkle) + angleAtJoint(points.rightHip,points.rightKnee,points.rightAnkle)) / 2;
+        if (angle < 112 && phase !== "down") phase = "down";
+        if (angle > 158 && phase === "down") { phase = "ready"; repetitions += 1; repCount.textContent = repetitions; }
+        movementState.textContent = phase === "down" ? "Abajo" : "De pie";
+        poseHintText.textContent = phase === "down" ? "¡Ahora sube!" : "Cuerpo detectado";
+      } else {
+        const handsUp = points.leftWrist.y < points.leftShoulder.y - .06 && points.rightWrist.y < points.rightShoulder.y - .06;
+        const shoulderWidth = Math.abs(points.leftShoulder.x - points.rightShoulder.x);
+        const feetApart = Math.abs(points.leftAnkle.x - points.rightAnkle.x) > shoulderWidth * 1.45;
+        if (handsUp && feetApart && phase !== "open") phase = "open";
+        if ((!handsUp || !feetApart) && phase === "open") { phase = "ready"; repetitions += 1; repCount.textContent = repetitions; }
+        movementState.textContent = phase === "open" ? "Abierto" : "Cerrado";
+        poseHintText.textContent = phase === "open" ? "¡Cierra el movimiento!" : "Cuerpo detectado";
+      }
+    }
+
+    function detectFrame() {
+      if (!stream || video.readyState < 2) { if (stream) requestAnimationFrame(detectFrame); return; }
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; }
+      const now = performance.now();
+      if (now !== previousFrameTime) {
+        previousFrameTime = now;
+        const result = landmarker.detectForVideo(video, now);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (result.landmarks?.length) {
+          const landmarks = result.landmarks[0];
+          drawingUtils.drawConnectors(landmarks,PoseLandmarker.POSE_CONNECTIONS,{color:"#b8f36b",lineWidth:3});
+          drawingUtils.drawLandmarks(landmarks,{color:"#fffefa",fillColor:"#b8f36b",lineWidth:1,radius:4});
+          updateMovement(landmarks);
+        } else {
+          movementState.textContent = "Buscando cuerpo";
+          poseHint.classList.remove("visible");
+        }
+      }
+      requestAnimationFrame(detectFrame);
+    }
+
+    exerciseSelect.addEventListener("change",() => {
+      repetitions = 0; phase = "ready"; repCount.textContent = "0";
+      movementState.textContent = stream ? "Buscando cuerpo" : "En espera";
+      tipText.textContent = exerciseSelect.value === "squat" ? "Baja con control y mantén las rodillas alineadas con los pies." : "Salta abriendo piernas y lleva las manos por encima de la cabeza.";
+    });
+    document.querySelector("#resetButton").addEventListener("click",() => {
+      repetitions = 0; phase = "ready"; startedAt = stream ? Date.now() : 0;
+      repCount.textContent = "0"; timeCount.textContent = "00:00";
+      movementState.textContent = stream ? "Buscando cuerpo" : "En espera";
+    });
+    cameraButton.addEventListener("click",toggleCamera);
+    window.addEventListener("pagehide",stopCamera);
+  </script>
+</body>
+</html>
